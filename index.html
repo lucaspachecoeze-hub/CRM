@@ -1043,13 +1043,10 @@ function renderPipeline() {
   const countEl = document.getElementById('pipeline-count');
   if(!tbody) return;
 
-  // Pendientes = agendas del setter que NO tienen _completado: true
-  const completedIds = new Set(closerData.map(x => String(x.setterId)).filter(Boolean));
-  const pending = setterData.filter(x => {
-    if(x._completado === true) return false;
-    if(completedIds.has(String(x.id))) return false;
-    return true;
-  });
+  // Pendientes = agendas del setter donde _completado !== true
+  // Los datos viejos de Firebase no tienen _completado, asi que aparecen todos
+  // Solo se ocultan cuando Mario hace clic en "Completar"
+  const pending = setterData.filter(x => x._completado !== true);
 
   if(countEl) countEl.textContent = pending.length + ' pendientes';
 
