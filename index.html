@@ -1039,32 +1039,34 @@ function renderSetter() {
 let completingId = null;
 
 function renderPipeline() {
-  // Agendas from setter that have NO matching closer record (pendientes)
-  const closerNames = new Set(closerData.map(x=>x.setterId||x.nombre.toLowerCase().trim()));
-  const pending = setterData.filter(x => !x._completado);
-  
-  const count = document.getElementById('pipeline-count');
-  if(count) count.textContent = pending.length + ' pendientes';
-  
   const tbody = document.getElementById('pipeline-tbody');
+  const countEl = document.getElementById('pipeline-count');
   if(!tbody) return;
-  
+
+  // Pendientes = agendas del setter que NO tienen _completado: true
+  const completedIds = new Set(closerData.map(x => String(x.setterId)).filter(Boolean));
+  const pending = setterData.filter(x => {
+    if(x._completado === true) return false;
+    if(completedIds.has(String(x.id))) return false;
+    return true;
+  });
+
+  if(countEl) countEl.textContent = pending.length + ' pendientes';
+
   if(!pending.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">🎉</div><p>No hay agendas pendientes</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text2)">🎉 No hay agendas pendientes</td></tr>';
     return;
   }
-  
+
   tbody.innerHTML = pending.map(r => `
     <tr>
-      <td style="font-weight:600">${r.nombre}</td>
+      <td style="font-weight:600;color:var(--text)">${r.nombre}</td>
       <td class="mono" style="color:var(--text2);font-size:0.72rem">${r.whatsapp||'-'}</td>
-      <td>${r.pais||''}</td>
-      <td class="mono">${r.fechaAgenda||r.diaAgendo||'Sin fecha'}</td>
+      <td style="color:var(--text)">${r.pais||'-'}</td>
+      <td class="mono" style="color:var(--text)">${r.fechaAgenda||r.diaAgendo||'Sin fecha'}</td>
       <td>${estatusBadge(r.estado)}</td>
       <td><span class="badge badge-gray">${r.mes}</span></td>
-      <td>
-        <button class="btn btn-primary btn-sm" onclick="openCompletar('${r.id}')">▶ Completar</button>
-      </td>
+      <td><button class="btn btn-primary btn-sm" onclick="openCompletar('${r.id}')">▶ Completar</button></td>
     </tr>
   `).join('');
 }
