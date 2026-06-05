@@ -338,12 +338,21 @@
 
   <!-- PIPELINE: Agendas pendientes del setter -->
   <div style="margin-bottom:2rem;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.75rem;">
       <div>
         <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--text2);">📋 Agendas Pendientes</div>
-        <div style="font-size:0.75rem;color:var(--text3);margin-top:0.2rem;">Cargadas por la setter — hacé clic en "Completar" para registrar el resultado</div>
+        <div style="font-size:0.75rem;color:var(--text2);margin-top:0.2rem;">Cargadas por la setter — hacé clic en "Completar" para registrar el resultado</div>
       </div>
-      <span id="pipeline-count" class="badge badge-yellow">0 pendientes</span>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <select id="pipeline-month" onchange="renderPipeline()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:0.8rem;padding:0.45rem 0.9rem;border-radius:8px;outline:none;">
+          <option value="Junio">Junio</option>
+          <option value="Mayo">Mayo</option>
+          <option value="Abril">Abril</option>
+          <option value="Marzo">Marzo</option>
+          <option value="all">Todos los meses</option>
+        </select>
+        <span id="pipeline-count" class="badge badge-yellow">0 pendientes</span>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -1044,9 +1053,12 @@ function renderPipeline() {
   if(!tbody) return;
 
   // Pendientes = agendas del setter donde _completado !== true
-  // Los datos viejos de Firebase no tienen _completado, asi que aparecen todos
-  // Solo se ocultan cuando Mario hace clic en "Completar"
-  const pending = setterData.filter(x => x._completado !== true);
+  const pipelineMonth = (document.getElementById('pipeline-month') || {value:'all'}).value;
+  const pending = setterData.filter(x => {
+    if(x._completado === true) return false;
+    if(pipelineMonth !== 'all' && x.mes !== pipelineMonth) return false;
+    return true;
+  });
 
   if(countEl) countEl.textContent = pending.length + ' pendientes';
 
