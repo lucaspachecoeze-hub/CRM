@@ -330,42 +330,60 @@
   <div class="section-header">
     <div>
       <div style="font-size:1.4rem;font-weight:700;margin-bottom:0.3rem;letter-spacing:-0.02em;">Llamadas · Closer</div>
-      <div style="color:var(--text2);font-size:0.82rem;">Registro de llamadas y cierres</div>
+      <div style="color:var(--text2);font-size:0.82rem;">Pipeline de agendas → cierres</div>
     </div>
-    <button class="btn btn-primary" onclick="openModal('closer')">+ Nueva Llamada</button>
   </div>
 
   <div class="metrics-grid" id="closer-metrics" style="margin-bottom:1.5rem;"></div>
 
-  <div class="filter-bar">
-    <select id="closer-month" onchange="renderCloser()">
-      <option value="all">Todos los meses</option>
-      <option value="Marzo">Marzo</option>
-      <option value="Abril">Abril</option>
-      <option value="Mayo">Mayo</option>
-      <option value="Junio">Junio</option>
-    </select>
-    <select id="closer-cerro" onchange="renderCloser()">
-      <option value="all">Todos</option>
-      <option value="SI">Cerró</option>
-      <option value="NO">No cerró</option>
-    </select>
-    <select id="closer-show" onchange="renderCloser()">
-      <option value="all">Todos los shows</option>
-      <option value="SI">Se presentó</option>
-      <option value="NO">No se presentó</option>
-    </select>
-    <input type="text" id="closer-search" placeholder="🔍 Buscar nombre..." oninput="renderCloser()" style="min-width:200px;">
+  <!-- PIPELINE: Agendas pendientes del setter -->
+  <div style="margin-bottom:2rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+      <div>
+        <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--text2);">📋 Agendas Pendientes</div>
+        <div style="font-size:0.75rem;color:var(--text3);margin-top:0.2rem;">Cargadas por la setter — hacé clic en "Completar" para registrar el resultado</div>
+      </div>
+      <span id="pipeline-count" class="badge badge-yellow">0 pendientes</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Nombre</th><th>WhatsApp</th><th>País</th><th>Fecha Agenda</th><th>Estado</th><th>Mes</th><th></th>
+        </tr></thead>
+        <tbody id="pipeline-tbody"></tbody>
+      </table>
+    </div>
   </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead><tr>
-        <th>#</th><th>Nombre</th><th>WhatsApp</th><th>Fecha Agenda</th>
-        <th>Show</th><th>Cerró</th><th>Monto Pagado</th><th>Total</th><th>Notas</th><th>Origen</th><th>Mes</th><th></th>
-      </tr></thead>
-      <tbody id="closer-tbody"></tbody>
-    </table>
+  <div style="height:1px;background:var(--border);margin-bottom:2rem;"></div>
+
+  <!-- HISTORIAL: Llamadas completadas -->
+  <div>
+    <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--text2);margin-bottom:0.75rem;">✅ Llamadas Completadas</div>
+    <div class="filter-bar">
+      <select id="closer-month" onchange="renderCloser()">
+        <option value="all">Todos los meses</option>
+        <option value="Marzo">Marzo</option>
+        <option value="Abril">Abril</option>
+        <option value="Mayo">Mayo</option>
+        <option value="Junio">Junio</option>
+      </select>
+      <select id="closer-cerro" onchange="renderCloser()">
+        <option value="all">Todos</option>
+        <option value="SI">Cerró</option>
+        <option value="NO">No cerró</option>
+      </select>
+      <input type="text" id="closer-search" placeholder="🔍 Buscar nombre..." oninput="renderCloser()" style="min-width:200px;">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Nombre</th><th>WhatsApp</th><th>País</th><th>Fecha Agenda</th>
+          <th>Show</th><th>Cerró</th><th>Monto Pagado</th><th>Total</th><th>Notas</th><th>Mes</th><th></th>
+        </tr></thead>
+        <tbody id="closer-tbody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -575,6 +593,54 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- COMPLETAR LLAMADA MODAL (pipeline) -->
+<div class="modal-overlay" id="modal-completar">
+  <div class="modal">
+    <div class="modal-title">Completar <span>Llamada</span></div>
+    <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:1rem;margin-bottom:1.25rem;">
+      <div style="font-size:0.68rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);margin-bottom:0.5rem;">Lead</div>
+      <div id="completar-info" style="font-size:0.9rem;font-weight:600;color:var(--text);"></div>
+      <div id="completar-sub" style="font-size:0.75rem;color:var(--text2);margin-top:0.25rem;font-family:var(--font-mono);"></div>
+    </div>
+    <div class="form-grid cols2">
+      <div class="form-group">
+        <label>¿Se presentó?</label>
+        <select id="cp-show">
+          <option value="SI">✅ SI se presentó</option>
+          <option value="NO">❌ NO se presentó</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>¿Cerró?</label>
+        <select id="cp-cerro">
+          <option value="NO">❌ No cerró</option>
+          <option value="SI">✅ Sí cerró</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Monto Pagado ($)</label>
+        <input type="number" id="cp-monto" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>Total a Pagar ($)</label>
+        <input type="number" id="cp-total" placeholder="0" min="0">
+      </div>
+      <div class="form-group" style="grid-column:1/-1;">
+        <label>Origen del Lead</label>
+        <input type="text" id="cp-origen" placeholder="CTA Historias, Reel, Referido...">
+      </div>
+      <div class="form-group" style="grid-column:1/-1;">
+        <label>Notas</label>
+        <textarea id="cp-notas" placeholder="Observaciones de la llamada..."></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('completar')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCompletar()">Guardar Resultado</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // =================== FIREBASE (loaded via CDN compat) ===================
@@ -869,7 +935,7 @@ function switchPage(name) {
   event.target.classList.add('active');
   if(name==='dashboard') renderDashboard();
   if(name==='setter') { renderSetterMetrics(); renderSetter(); }
-  if(name==='closer') { renderCloserMetrics(); renderCloser(); }
+  if(name==='closer') { renderCloserMetrics(); renderCloser(); renderPipeline(); }
   if(name==='ctas') { renderCtaMetrics(); renderCta(); }
 }
 
@@ -969,6 +1035,90 @@ function renderSetter() {
 }
 
 // =================== CLOSER ===================
+// =================== PIPELINE ===================
+let completingId = null;
+
+function renderPipeline() {
+  // Agendas from setter that have NO matching closer record (pendientes)
+  const closerNames = new Set(closerData.map(x=>x.setterId||x.nombre.toLowerCase().trim()));
+  const pending = setterData.filter(x => !x._completado);
+  
+  const count = document.getElementById('pipeline-count');
+  if(count) count.textContent = pending.length + ' pendientes';
+  
+  const tbody = document.getElementById('pipeline-tbody');
+  if(!tbody) return;
+  
+  if(!pending.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">🎉</div><p>No hay agendas pendientes</p></div></td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = pending.map(r => `
+    <tr>
+      <td style="font-weight:600">${r.nombre}</td>
+      <td class="mono" style="color:var(--text2);font-size:0.72rem">${r.whatsapp||'-'}</td>
+      <td>${r.pais||''}</td>
+      <td class="mono">${r.fechaAgenda||r.diaAgendo||'Sin fecha'}</td>
+      <td>${estatusBadge(r.estado)}</td>
+      <td><span class="badge badge-gray">${r.mes}</span></td>
+      <td>
+        <button class="btn btn-primary btn-sm" onclick="openCompletar('${r.id}')">▶ Completar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openCompletar(setterId) {
+  completingId = setterId;
+  const r = setterData.find(x => String(x.id) === String(setterId));
+  if(!r) return;
+  document.getElementById('completar-info').textContent = r.nombre;
+  document.getElementById('completar-sub').textContent = (r.fechaAgenda || r.diaAgendo || '') + (r.pais ? ' · ' + r.pais : '') + (r.whatsapp ? ' · ' + r.whatsapp : '');
+  document.getElementById('cp-show').value = 'SI';
+  document.getElementById('cp-cerro').value = 'NO';
+  document.getElementById('cp-monto').value = '';
+  document.getElementById('cp-total').value = '';
+  document.getElementById('cp-origen').value = '';
+  document.getElementById('cp-notas').value = '';
+  document.getElementById('modal-completar').classList.add('open');
+}
+
+async function saveCompletar() {
+  const setter = setterData.find(x => String(x.id) === String(completingId));
+  if(!setter) return;
+  
+  const obj = {
+    id: String(Date.now()),
+    setterId: String(completingId),
+    nombre: setter.nombre,
+    whatsapp: setter.whatsapp||'',
+    pais: setter.pais||'',
+    fecha: setter.fechaAgenda||setter.diaAgendo||'',
+    mes: setter.mes,
+    show: document.getElementById('cp-show').value,
+    cerro: document.getElementById('cp-cerro').value,
+    monto: parseFloat(document.getElementById('cp-monto').value)||0,
+    total: parseFloat(document.getElementById('cp-total').value)||0,
+    origen: document.getElementById('cp-origen').value.trim(),
+    notas: document.getElementById('cp-notas').value.trim(),
+  };
+  
+  // Save closer record
+  await saveItem('closer', obj);
+  
+  // Mark setter record as completado
+  const updatedSetter = {...setter, _completado: true};
+  await saveItem('setter', updatedSetter);
+  
+  await loadData();
+  closeModal('completar');
+  renderPipeline();
+  renderCloser();
+  renderCloserMetrics();
+  showToast('✓ Llamada completada y guardada');
+}
+
 function renderCloserMetrics() {
   const month = document.getElementById('closer-month').value;
   const data = month==='all' ? closerData : closerData.filter(x=>x.mes===month);
@@ -998,24 +1148,21 @@ function renderCloser() {
     return true;
   });
   const tbody = document.getElementById('closer-tbody');
-  if(!data.length) { tbody.innerHTML='<tr><td colspan="12"><div class="empty-state"><div class="icon">📞</div><p>No hay llamadas registradas</p></div></td></tr>'; return; }
+  if(!data.length) { tbody.innerHTML='<tr><td colspan="11"><div class="empty-state"><div class="icon">📞</div><p>No hay llamadas completadas aún</p></div></td></tr>'; return; }
   tbody.innerHTML = data.map((r,i)=>`
     <tr>
       <td class="mono" style="color:var(--text2)">${i+1}</td>
       <td style="font-weight:600">${r.nombre}</td>
       <td class="mono" style="color:var(--text2);font-size:0.72rem">${r.whatsapp||'-'}</td>
+      <td>${r.pais||'-'}</td>
       <td class="mono">${r.fecha||'-'}</td>
       <td>${r.show==='SI'?'<span class="badge badge-green">✓ SI</span>':'<span class="badge badge-red">✗ NO</span>'}</td>
       <td>${r.cerro==='SI'?'<span class="badge badge-green">✓ Cerró</span>':'<span class="badge badge-red">✗ No cerró</span>'}</td>
       <td class="mono" style="color:var(--yellow);font-weight:700">${r.monto?'$'+Number(r.monto).toLocaleString():'-'}</td>
       <td class="mono" style="color:var(--text2)">${r.total?'$'+Number(r.total).toLocaleString():'-'}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);font-size:0.75rem" title="${r.notas||''}">${r.notas||'-'}</td>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;color:var(--text2)" title="${r.origen||''}">${r.origen||'-'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);font-size:0.75rem" title="${r.notas||''}">${r.notas||'-'}</td>
       <td><span class="badge badge-gray">${r.mes}</span></td>
-      <td>
-        <button class="btn btn-ghost btn-sm" onclick="editRow('closer',${r.id})">✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteRow('closer',${r.id})">✕</button>
-      </td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteRow('closer','${r.id}')">✕</button></td>
     </tr>
   `).join('');
 }
@@ -1186,10 +1333,10 @@ function editRow(type, id) { openModal(type, id); }
 async function deleteRow(type, id) {
   if(!confirm('¿Eliminar este registro?')) return;
   const col = type==='setter'?'setter':type==='closer'?'closer':'ctas';
-  await deleteItem(col, id);
+  await deleteItem(col, String(id));
   await loadData();
   if(type==='setter') renderSetter();
-  if(type==='closer') renderCloser();
+  if(type==='closer') { renderCloser(); renderPipeline(); }
   if(type==='cta') renderCta();
   showToast('Registro eliminado');
 }
