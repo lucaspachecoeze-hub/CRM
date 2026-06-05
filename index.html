@@ -1137,12 +1137,11 @@ function renderCloser() {
   renderCloserMetrics();
   const month = document.getElementById('closer-month').value;
   const cerroF = document.getElementById('closer-cerro').value;
-  const showF = document.getElementById('closer-show').value;
+  const showF = 'all'; // filtro de show removido del pipeline
   const search = document.getElementById('closer-search').value.toLowerCase();
   let data = closerData.filter(x=>{
     if(month!=='all' && x.mes!==month) return false;
     if(cerroF!=='all' && x.cerro!==cerroF) return false;
-    if(showF!=='all' && x.show!==showF) return false;
     if(search && !x.nombre.toLowerCase().includes(search)) return false;
     return true;
   });
