@@ -923,6 +923,15 @@ function showLoading(on) {
 // nextId defined above
 function fmt(n) { return n ? '$'+Number(n).toLocaleString() : '-'; }
 function pct(a,b) { return b ? (a/b*100).toFixed(1)+'%' : '-'; }
+function fmtFecha(str) {
+  if(!str) return '-';
+  const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  // Try YYYY-MM-DD
+  const m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m) return parseInt(m[3]) + ' ' + meses[parseInt(m[2])-1];
+  return str;
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -956,8 +965,8 @@ function renderDashboard() {
   
   const shows = cf.filter(x=>x.show==='SI').length;
   const cierres = cf.filter(x=>x.cerro==='SI').length;
-  const facturacion = cf.reduce((s,x)=>s+(x.monto||0),0);
   const cashCollected = cf.reduce((s,x)=>s+(x.monto||0),0);
+  const facturacion = cf.reduce((s,x)=>s+(x.total||0),0);
   const closingPct = shows>0 ? (cierres/shows*100).toFixed(1) : 0;
   const showRate = cf.length>0 ? (shows/cf.length*100).toFixed(1) : 0;
 
@@ -966,8 +975,8 @@ function renderDashboard() {
     <div class="metric-card"><div class="metric-label">Llamadas Closer</div><div class="metric-value accent">${cf.length}</div><div class="metric-sub">total llamadas</div></div>
     <div class="metric-card"><div class="metric-label">Shows</div><div class="metric-value">${shows}</div><div class="metric-sub">Show Rate — <span style="color:var(--text);font-weight:600">${showRate}%</span></div></div>
     <div class="metric-card green"><div class="metric-label">Cierres</div><div class="metric-value green">${cierres}</div><div class="metric-sub">% Closing — <span style="color:var(--green);font-weight:700">${closingPct}%</span></div></div>
-    <div class="metric-card yellow"><div class="metric-label">Facturación</div><div class="metric-value yellow">$${facturacion.toLocaleString()}</div><div class="metric-sub">monto total pagado</div></div>
-    <div class="metric-card red"><div class="metric-label">Cash Collected</div><div class="metric-value red">$${cashCollected.toLocaleString()}</div><div class="metric-sub">dinero recibido</div></div>
+    <div class="metric-card yellow"><div class="metric-label">Cash Collected</div><div class="metric-value yellow">$${cashCollected.toLocaleString()}</div><div class="metric-sub">monto cobrado en llamada</div></div>
+    <div class="metric-card red"><div class="metric-label">Facturación Total</div><div class="metric-value red">$${facturacion.toLocaleString()}</div><div class="metric-sub">total a pagar por clientes</div></div>
   `;
 
   // Países
@@ -1030,9 +1039,9 @@ function renderSetter() {
       <td class="mono" style="color:var(--text2)">${i+1}</td>
       <td style="font-weight:600">${r.nombre}</td>
       <td class="mono" style="color:var(--text2);font-size:0.72rem">${r.whatsapp||'-'}</td>
-      <td class="mono">${r.diaAgendo||'-'}</td>
+      <td>${fmtFecha(r.diaAgendo)}</td>
       <td>${r.pais||'-'}</td>
-      <td class="mono">${r.fechaAgenda||'-'}</td>
+      <td>${fmtFecha(r.fechaAgenda)}</td>
       <td>${estatusBadge(r.estado)}</td>
       <td><span class="badge badge-gray">${r.mes}</span></td>
       <td>
@@ -1072,7 +1081,7 @@ function renderPipeline() {
       <td style="font-weight:600;color:var(--text)">${r.nombre}</td>
       <td class="mono" style="color:var(--text2);font-size:0.72rem">${r.whatsapp||'-'}</td>
       <td style="color:var(--text)">${r.pais||'-'}</td>
-      <td class="mono" style="color:var(--text)">${r.fechaAgenda||r.diaAgendo||'Sin fecha'}</td>
+      <td style="color:var(--text)">${fmtFecha(r.fechaAgenda||r.diaAgendo)}</td>
       <td>${estatusBadge(r.estado)}</td>
       <td><span class="badge badge-gray">${r.mes}</span></td>
       <td><button class="btn btn-primary btn-sm" onclick="openCompletar('${r.id}')">▶ Completar</button></td>
@@ -1138,11 +1147,14 @@ function renderCloserMetrics() {
   const fact = data.reduce((s,x)=>s+(x.monto||0),0);
   const showRate = data.length>0?(shows/data.length*100).toFixed(1):0;
   const closingPct = shows>0?(cierres/shows*100).toFixed(1):0;
+  const cashCollected = data.reduce((s,x)=>s+(x.monto||0),0);
+  const facturacion = data.reduce((s,x)=>s+(x.total||0),0);
   document.getElementById('closer-metrics').innerHTML = `
     <div class="metric-card"><div class="metric-label">Llamadas</div><div class="metric-value accent">${data.length}</div></div>
     <div class="metric-card"><div class="metric-label">Shows</div><div class="metric-value">${shows}</div><div class="metric-sub">Show Rate — <span style="color:var(--text);font-weight:600">${showRate}%</span></div></div>
     <div class="metric-card green"><div class="metric-label">Cierres</div><div class="metric-value green">${cierres}</div><div class="metric-sub">% Closing — <span style="color:var(--green);font-weight:700">${closingPct}%</span></div></div>
-    <div class="metric-card yellow"><div class="metric-label">Facturación</div><div class="metric-value yellow">$${fact.toLocaleString()}</div><div class="metric-sub">cash collected</div></div>
+    <div class="metric-card yellow"><div class="metric-label">Cash Collected</div><div class="metric-value yellow">$${cashCollected.toLocaleString()}</div><div class="metric-sub">monto cobrado en llamada</div></div>
+    <div class="metric-card red"><div class="metric-label">Facturación Total</div><div class="metric-value red">$${facturacion.toLocaleString()}</div><div class="metric-sub">total a pagar por clientes</div></div>
   `;
 }
 function renderCloser() {
@@ -1165,7 +1177,7 @@ function renderCloser() {
       <td style="font-weight:600">${r.nombre}</td>
       <td class="mono" style="color:var(--text2);font-size:0.72rem">${r.whatsapp||'-'}</td>
       <td>${r.pais||'-'}</td>
-      <td class="mono">${r.fecha||'-'}</td>
+      <td>${fmtFecha(r.fecha)}</td>
       <td>${r.show==='SI'?'<span class="badge badge-green">✓ SI</span>':'<span class="badge badge-red">✗ NO</span>'}</td>
       <td>${r.cerro==='SI'?'<span class="badge badge-green">✓ Cerró</span>':'<span class="badge badge-red">✗ No cerró</span>'}</td>
       <td class="mono" style="color:var(--yellow);font-weight:700">${r.monto?'$'+Number(r.monto).toLocaleString():'-'}</td>
@@ -1291,6 +1303,14 @@ async function saveSetter() {
     mes: document.getElementById('s-mes').value,
   };
   if(!obj.nombre) { alert('Ingresá el nombre'); return; }
+  // Check duplicates (same name + same fecha)
+  if(!editingId) {
+    const dup = setterData.find(x =>
+      x.nombre.toLowerCase().trim() === obj.nombre.toLowerCase().trim() &&
+      x.fechaAgenda === obj.fechaAgenda
+    );
+    if(dup) { if(!confirm('Ya existe una agenda para ' + obj.nombre + ' en esa fecha. ¿Guardar igual?')) return; }
+  }
   const id = editingId || nextId(setterData);
   obj.id = id;
   await saveItem('setter', obj);
